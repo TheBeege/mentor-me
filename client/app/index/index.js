@@ -7,11 +7,5 @@ angular.module('mentorMeApp')
         url: '/',
         templateUrl: 'app/index/index.html',
         controller: 'IndexCtrl'
-      })
-      .state('find_mentor', {
-        url: '/find_mentor',
-        templateUrl: 'app/find_mentor/find_mentor.html',
-        controller: 'IndexCtrl'
       });
   });
-

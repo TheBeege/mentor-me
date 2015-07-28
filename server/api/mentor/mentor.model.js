@@ -7,6 +7,7 @@ var MentorSchema = new Schema({
   name: String,
   info: String,
   active: Boolean,
+  image: String,
   tags: { type: [String], index: true }
 });
 
