@@ -7,16 +7,11 @@ angular.module('mentorMeApp')
         url: '/',
         templateUrl: 'app/index/index.html',
         controller: 'IndexCtrl'
+      })
+      .state('find_mentor', {
+        url: '/find_mentor',
+        templateUrl: 'app/find_mentor/find_mentor.html',
+        controller: 'IndexCtrl'
       });
   });
 
-/* in your javascript */
-App.controller('home', function (page) {
-  // this runs whenever a 'home' page is loaded
-  // 'page' is the HTML app-page element
-  $(page)
-    .find('.app-button')
-    .on('click', function () {
-      console.log('button was clicked!');
-    });
-});

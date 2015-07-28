@@ -2,6 +2,8 @@
 
 angular.module('mentorMeApp')
   .controller('IndexCtrl', function ($scope, $http, socket) {
+
+
     $scope.awesomeThings = [];
 
     $http.get('/api/things').success(function(awesomeThings) {
