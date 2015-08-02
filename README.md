@@ -11,7 +11,7 @@ This project was scaffolded with the yeoman generator angular-fullstack: https:/
 
 ## Getting started
 1. Download and install Node.js: https://nodejs.org/. This automatically installs NPM, Node package manager. You can use this to install additional libraries and utilities.
-2. Clone this repo. Aren't familiar with Git and Github? See https://try.github.io/
+2. Fork this repo, then clone your fork. Aren't familiar with Git and Github? See https://try.github.io/
 3. In your command line of choice, navigate to the project folder and simply run `npm install`. NPM will look at packages.json to find dependencies and install them.
 4. Run `grunt serve`. This starts the server and loads the page in your default browser. Updates you make to code will be automatically reloaded.
 5. Open the project folder in your editor of choice. I recommend Atom https://atom.io/, Sublime http://www.sublimetext.com/3, or Notepad++ https://notepad-plus-plus.org/.
