@@ -11,10 +11,16 @@ module.exports = function(app) {
   // Insert routes below
   app.use('/api/mentors', require('./api/mentor'));
   app.use('/api/things', require('./api/thing'));
-  
+
   // All undefined asset or api routes should return a 404
   app.route('/:url(api|auth|components|app|bower_components|assets)/*')
    .get(errors[404]);
+
+  // http://stackoverflow.com/questions/5400761/why-isnt-express-js-setting-the-content-type-header
+  /*app.get('/cache.manifest', function(req, res) {
+    res.header("Content-Type", "text/cache-manifest");
+    res.end("CACHE MANIFEST");
+  });*/
 
   // All other routes should redirect to the index.html
   app.route('/*')
