@@ -3,6 +3,14 @@
 var _ = require('lodash');
 var Mentor = require('./mentor.model');
 
+// Find mentor by tag
+exports.tag = function(req, res) {
+  Mentor.find({tags: {$in: req.params.tags}}, function (err, mentors) {
+    if(err) { return handleError(res, err); }
+    return res.json(200, mentors);
+  });
+};
+
 // Get list of mentors
 exports.index = function(req, res) {
   Mentor.find(function (err, mentors) {

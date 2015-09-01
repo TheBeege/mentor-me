@@ -1,14 +1,15 @@
 'use strict';
 
 angular.module('mentorMeApp')
-  .controller('BecomeMentorCtrl', function ($scope) {
+  .controller('BecomeMentorCtrl', function ($scope, $http) {
     $scope.message = 'Hello';
 
     $scope.addMentor = function() {
-      if($scope.newMentor === {}) {
+      if($scope.mentor === {}) {
         return;
       }
-      $http.post('/api/mentor', $scope.newMentor);
-      $scope.newMentor = {};
+      $scope.mentor.tags = $scope.mentor.tags.split(",");
+      $http.post('/api/mentors', $scope.mentor);
+      $scope.mentor = {};
     };
   });

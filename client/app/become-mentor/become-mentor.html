@@ -3,20 +3,21 @@
   <form>
     <div class="form-group">
       <label>Name: </label>
-      <input type="text" class="form-control" id="name" class="form-input"></input>
+      <input type="text" class="form-control" id="name" class="form-input" ng-model="mentor.name"></input>
     </div>
     <div class="form-group">
       <label>Info: </label>
-      <input type="text" class="form-control" id="info"></input>
+      <input type="text" class="form-control" id="info" ng-model="mentor.info"></input>
     </div>
-    <input type="hidden" id="active"></input>
+    <input type="hidden" id="active" ng-model="mentor.active"></input>
     <div class="form-group">
       <label>Image: </label>
-      <input type="image" class="form-control" id="image" accept="image/*"></input>
+      <input type="image" class="form-control" id="image" accept="image/*" ng-model="mentor.image"></input>
     </div>
     <div class="form-group">
       <label>Tags: </label>
-      <input type="text" class="form-control" id="tags">
+      <input type="text" class="form-control" id="tags"  ng-model="mentor.tags">
     </input>
+    <input type="button" ng-click="addMentor(mentor)" value="Make Me a Mentor!">
   </form>
 </div>
