@@ -1,8 +1,9 @@
 <div ng-include="'components/navbar_kik/navbar.html'"></div>
 <div class="col-md-12">
-	<ul>
-		<li ng-repeat="mentor in mentors">
-			Images goes hurr. Name goes hurr.
+	<ul class="mentor_list">
+		<li class="mentor_list_item" ng-repeat="mentor in mentors">
+			<img src="">
+			{{mentor.info}}
 		</li>
 	</ul>
 </div>

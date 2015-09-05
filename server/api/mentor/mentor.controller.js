@@ -30,10 +30,14 @@ exports.show = function(req, res) {
 
 // Creates a new mentor in the DB.
 exports.create = function(req, res) {
-  Mentor.create(req.body, function(err, mentor) {
-    if(err) { return handleError(res, err); }
-    return res.json(201, mentor);
-  });
+  if (!req.body.username) {
+    // Malicious attempt. They were never logged in
+  } else {
+    Mentor.create(req.body, function(err, mentor) {
+      if(err) { return handleError(res, err); }
+      return res.json(201, mentor);
+    });
+  }
 };
 
 // Updates an existing mentor in the DB.

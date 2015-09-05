@@ -4,8 +4,10 @@ angular.module('mentorMeApp')
   .controller('FindMentorCtrl', function ($scope, $http, socket) {
     $scope.message = 'Hello';
 
-    $http.get('/api/things').success(function(mentors) {
+    $http.get('/api/mentors').success(function(mentors) {
       $scope.mentors = mentors;
-      socket.syncUpdates('thing', $scope.mentors);
+      console.log("mentors:");
+      console.log($scope.mentors);
+      //socket.syncUpdates('thing', $scope.mentors);
     });
   });

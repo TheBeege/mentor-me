@@ -4,10 +4,9 @@ var mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
 var MentorSchema = new Schema({
-  name: String,
+  username: String,
   info: String,
   active: Boolean,
-  image: String,
   tags: { type: [String], index: true }
 });
 
