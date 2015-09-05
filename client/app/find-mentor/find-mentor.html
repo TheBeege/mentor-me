@@ -1,9 +1,17 @@
 <div ng-include="'components/navbar_kik/navbar.html'"></div>
 <div class="col-md-12">
+	<form>
+		<input type="text" id="tag-filter" ng-model="tagInputs" ng-change="updateMentorList()"></input>
+	</form>
 	<ul class="mentor_list">
 		<li class="mentor_list_item" ng-repeat="mentor in mentors">
 			<img src="">
 			{{mentor.info}}
+			<ul clas="tag_list">
+				<li class="tag_list_item" ng-repeat="tag in mentor.tags">
+					{{tag}}
+				</li>
+			</ul>
 		</li>
 	</ul>
 </div>

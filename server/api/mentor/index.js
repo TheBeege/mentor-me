@@ -6,6 +6,7 @@ var controller = require('./mentor.controller');
 var router = express.Router();
 
 router.get('/', controller.index);
+router.get('/bytag', controller.tag);
 router.get('/:id', controller.show);
 router.post('/', controller.create);
 router.put('/:id', controller.update);

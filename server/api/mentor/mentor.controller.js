@@ -5,8 +5,30 @@ var Mentor = require('./mentor.model');
 
 // Find mentor by tag
 exports.tag = function(req, res) {
-  Mentor.find({tags: {$in: req.params.tags}}, function (err, mentors) {
-    if(err) { return handleError(res, err); }
+  // If there are no tag values, give back
+  // ALL THE MENTORS!
+  if (req.query.tags.length == 0) {
+    console.log("no tags");
+    return exports.index(req,res);
+  }
+
+  // GET query parameters will appear as a raw value
+  // if there's only one of them, instead of as an array
+  if (typeof req.query.tags == "string") {
+    console.log("single string. Converting to array");
+    req.query.tags = [req.query.tags];
+  }
+
+  console.log("tags after cleanup");
+  console.log(req.query.tags);
+  Mentor.find({tags: {$in: req.query.tags}}, function (err, mentors) {
+    if(err) {
+      console.log("Error finding mentors:");
+      console.log("err");
+      return handleError(res, err);
+    }
+    console.log("mentors:");
+    console.log(mentors);
     return res.json(200, mentors);
   });
 };
@@ -33,6 +55,9 @@ exports.create = function(req, res) {
   if (!req.body.username) {
     // Malicious attempt. They were never logged in
   } else {
+    req.body.tags.forEach(function(part, index, tagArray) {
+      tagArray[index] = part.trim();
+    });
     Mentor.create(req.body, function(err, mentor) {
       if(err) { return handleError(res, err); }
       return res.json(201, mentor);
