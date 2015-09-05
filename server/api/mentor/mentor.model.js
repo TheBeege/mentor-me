@@ -5,6 +5,9 @@ var mongoose = require('mongoose'),
 
 var MentorSchema = new Schema({
   username: String,
+  fullName: String,
+  pic: String,
+  thumbnail: String,
   info: String,
   active: Boolean,
   tags: { type: [String], index: true }

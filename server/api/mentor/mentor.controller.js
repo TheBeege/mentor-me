@@ -58,6 +58,8 @@ exports.create = function(req, res) {
     req.body.tags.forEach(function(part, index, tagArray) {
       tagArray[index] = part.trim();
     });
+    req.body.pic = req.body.pic.substring(2);
+    req.body.thumbnail = req.body.thumbnail.substring(2);
     Mentor.create(req.body, function(err, mentor) {
       if(err) { return handleError(res, err); }
       return res.json(201, mentor);

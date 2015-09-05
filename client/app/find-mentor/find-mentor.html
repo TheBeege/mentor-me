@@ -5,7 +5,7 @@
 	</form>
 	<ul class="mentor_list">
 		<li class="mentor_list_item" ng-repeat="mentor in mentors">
-			<img src="">
+			<img src="http://{{mentor.thumbnail}}" width="80px" height="80x">
 			{{mentor.info}}
 			<ul clas="tag_list">
 				<li class="tag_list_item" ng-repeat="tag in mentor.tags">

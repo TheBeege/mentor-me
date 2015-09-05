@@ -8,6 +8,9 @@ angular.module('mentorMeApp')
           // user denied access to their information
         } else {
           $scope.username = user.username; // 'string'
+          $scope.fullName = user.fullName;
+          $scope.pic = user.pic;
+          $scope.thumbnail = user.thumbnail;
         }
       });
     };
@@ -19,6 +22,9 @@ angular.module('mentorMeApp')
         }
         $scope.mentor.tags = $scope.mentor.tags.split(",");
         $scope.mentor.username = $scope.username;
+        $scope.mentor.fullName = $scope.fullName;
+        $scope.mentor.pic = $scope.pic;
+        $scope.mentor.thumbnail = $scope.thumbnail;
         $http.post('/api/mentors', $scope.mentor);
         $scope.mentor = {};
       } else {
