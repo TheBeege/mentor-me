@@ -1,17 +1,22 @@
 <div ng-include="'components/navbar_kik/navbar.html'"></div>
 <div class="col-md-12">
 	<form>
-		<input type="text" id="tag-filter" ng-model="tagInputs" ng-change="updateMentorList()"></input>
+		<label for="tag-filter">Type search tags here:</label>
+		<input type="text" class="form-control" id="tag-filter" ng-model="tagInputs" ng-change="updateMentorList()"></input>
 	</form>
 	<ul class="mentor_list">
-		<li class="mentor_list_item" ng-repeat="mentor in mentors">
-			<img src="http://{{mentor.thumbnail}}" width="80px" height="80x">
-			{{mentor.info}}
-			<ul clas="tag_list">
-				<li class="tag_list_item" ng-repeat="tag in mentor.tags">
-					{{tag}}
-				</li>
-			</ul>
+		<li class="mentor_list_item bg-info img-rounded" ng-repeat="mentor in mentors">
+			<a class="mentorBox" ng-click="kik.showProfile(mentor.username)">
+				<!--<a ui-sref="view-mentor({mentorID: mentor._id})">-->
+				<img class="mentor_image" src="http://{{mentor.thumbnail}}" width="80px" height="80x">
+				<p>{{mentor.info}}</p>
+				<div clas="tag_list">
+					<span class="tag_list_item bg-primary img-rounded" ng-repeat="tag in mentor.tags">
+						{{tag}}
+					</span>
+				</div>
+				<!--</a>-->
+			</a>
 		</li>
 	</ul>
 </div>

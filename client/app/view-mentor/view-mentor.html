@@ -1,0 +1,9 @@
+<div ng-include="'components/navbar_kik/navbar.html'"></div>
+<div class="col-md-12 text-center">
+  <img src="{{mentor.pic}}">
+  <h3>{{mentor.fullName}}</h3>
+  <h6>{{mentor.username}}</h6>
+  <p>{{mentor.info}}</p>
+  <p>Tags: {{tagText}}</p>
+  <button ng-click="sendMessage(mentor.username)">Send a Message</button>
+</div>

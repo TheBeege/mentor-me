@@ -1,8 +1,8 @@
 'use strict';
 
+// TODO: use ui.select (angular-ui/ui-select) to do better tagging stuff
 angular.module('mentorMeApp')
   .controller('FindMentorCtrl', function ($scope, $http, socket) {
-    $scope.message = 'Hello';
 
     $http.get('/api/mentors').success(function(mentors) {
       $scope.mentors = mentors;
