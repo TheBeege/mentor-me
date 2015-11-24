@@ -23,7 +23,7 @@ angular.module('mentorMeApp')
       });
     };
 
-    $scope.showProfile = function() {
+    $scope.showProfile = function(mentor) {
       kik.showProfile(mentor.username);
     }
   });
