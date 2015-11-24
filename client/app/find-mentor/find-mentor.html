@@ -8,7 +8,7 @@
 		<li class="mentor_list_item bg-info img-rounded" ng-repeat="mentor in mentors">
 			<a class="mentorBox" ng-click="kik.showProfile(mentor.username)">
 				<!--<a ui-sref="view-mentor({mentorID: mentor._id})">-->
-				<img class="mentor_image" src="http://{{mentor.thumbnail}}" width="80px" height="80x">
+				<img class="mentor_image" src="http://{{mentor.thumbnail}}">
 				<p>{{mentor.info}}</p>
 				<div clas="tag_list">
 					<span class="tag_list_item bg-primary img-rounded" ng-repeat="tag in mentor.tags">

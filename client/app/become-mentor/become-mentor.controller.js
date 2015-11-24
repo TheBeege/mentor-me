@@ -6,11 +6,26 @@ angular.module('mentorMeApp')
       kik.getUser(function (user) {
         if ( !user ) {
           // user denied access to their information
+          $scope.error = "We cannot register you without your kik user information.";
         } else {
           $scope.username = user.username; // 'string'
           $scope.fullName = user.fullName;
           $scope.pic = user.pic;
           $scope.thumbnail = user.thumbnail;
+        }
+      })
+
+      // check if they're already a mentor
+      $http({
+        url: '/api/mentors/byusername/' + user.username,
+        method: 'GET'
+      }).success(function(mentors) {
+        if(mentors.length == 1) {
+          // they're already a mentor, we should render the edit view
+          $scope.alreadyMentor = true;
+          
+        } else {
+          $scope.alreadyMentor = false;
         }
       });
     };

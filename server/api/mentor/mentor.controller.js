@@ -50,6 +50,15 @@ exports.show = function(req, res) {
   });
 };
 
+// Get a single mentor by their username
+exports.username = function(req, res) {
+  Mentor.Find({username: req.params.username}, function(err, mentor) {
+    if(err) { return handleError(res, err); }
+    if(!mentor) { return res.send(404); }
+    return res.json(mentor);
+  });
+}
+
 // Creates a new mentor in the DB.
 exports.create = function(req, res) {
   if (!req.body.username) {
