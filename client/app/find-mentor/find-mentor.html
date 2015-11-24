@@ -6,7 +6,7 @@
 	</form>
 	<ul class="mentor_list">
 		<li class="mentor_list_item bg-info img-rounded" ng-repeat="mentor in mentors">
-			<a class="mentorBox" ng-click="kik.showProfile(mentor.username)">
+			<a class="mentorBox" ng-click="showProfile()">
 				<!--<a ui-sref="view-mentor({mentorID: mentor._id})">-->
 				<img class="mentor_image" src="http://{{mentor.thumbnail}}" width="80px" height="80x">
 				<p>{{mentor.info}}</p>

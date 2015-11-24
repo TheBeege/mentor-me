@@ -22,4 +22,8 @@ angular.module('mentorMeApp')
         $scope.mentors = mentors;
       });
     };
+
+    $scope.showProfile = function() {
+      kik.showProfile(mentor.username);
+    }
   });
