@@ -8,7 +8,6 @@ angular.module('mentorMeApp')
       $scope.mentors = mentors;
       console.log("mentors:");
       console.log($scope.mentors);
-      //socket.syncUpdates('thing', $scope.mentors);
     });
 
     $scope.updateMentorList = function() {

@@ -52,9 +52,14 @@ exports.show = function(req, res) {
 
 // Get a single mentor by their username
 exports.username = function(req, res) {
-  Mentor.Find({username: req.params.username}, function(err, mentor) {
+  console.log("username:");
+  console.log(req.params.username);
+  Mentor.find({username: req.params.username}, function(err, mentor) {
     if(err) { return handleError(res, err); }
-    if(!mentor) { return res.send(404); }
+    if(mentor.length == 0) { return res.send(404); }
+    mentor = mentor[0]; // unique index on username should only ever return one or 0 records
+    console.log("mentor:");
+    console.log(mentor);
     return res.json(mentor);
   });
 }
