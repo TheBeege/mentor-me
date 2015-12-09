@@ -2,6 +2,8 @@
 
 angular.module('mentorMeApp')
 .controller('BecomeMentorCtrl', function ($scope, $http, $state) {
+  $scope.alerts = new array();
+
   var init = function() {
     kik.getUser(function (user) {
       if ( !user ) {
@@ -29,8 +31,10 @@ angular.module('mentorMeApp')
               $scope.mentor.thumbnail = user.thumbnail;
             }
           }, function errorCallback(response) {
-            // TODO: do stuff
-            console.log("failed");
+            $scope.alerts.push({
+              type: 'danger',
+              msg: 'Failed to grab your info. Try reloading?'
+            })
           }
         );
       }
@@ -50,24 +54,43 @@ angular.module('mentorMeApp')
       $scope.mentor.active = true;
       $http.post('/api/mentors', $scope.mentor).then(
         function successCallback(response) {
-          // inform them of success
+          $scope.alerts.push({
+            type: 'success',
+            msg: 'Successfully set you up as a mentor!'
+          })
         }, function errorCallback(response) {
-          // do something
+          $scope.alerts.push({
+            type: 'danger',
+            msg: 'Something went wrong setting you up. Try again?'
+          })
         }
       );
     } else {
-      // They shouldn't have been able to do this
+      $scope.alerts.push({
+        type: 'danger',
+        msg: "You shouldn't be here. Trying to mess with things?"
+      })
     }
   };
 
   $scope.updateMentor = function() {
     $http.put('/api/mentors/' + $scope.mentor._id, $scope.mentor).then(
       function successCallback(response) {
-        // inform them of success
+        $scope.alerts.push({
+          type: 'success',
+          msg: 'Successfully updated your info'
+        })
       }, function errorCallback(response) {
-        // do something
+        $scope.alerts.push({
+          type: 'danger',
+          msg: 'Something went wrong updating your info. Try again?'
+        })
       }
     );
+  }
+
+  $scope.closeAlert = function(index) {
+    $scope.alerts.splice(index, 1);
   }
 
   init();

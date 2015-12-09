@@ -1,5 +1,6 @@
 <div ng-include="'components/navbar_kik/navbar.html'"></div>
 <div class="col-md-12">
+  <uib-alert ng-repeat="alert in alerts" type="{{alert.type}}" dismiss-on-timeout="5" close="closeAlert($index)">{{alert.msg}}</uib-alert>
   <form>
     <!-- add stuff for prepopulating info if they're already a mentor -->
     <!-- Also, sub out the submit from add to update -->
