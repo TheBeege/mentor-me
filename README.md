@@ -1,15 +1,12 @@
 # mentor-me
-MentorMe is a mentor matchmaking app for kik. This is a community project, primarily worked on by the #programming and #javascript chats in kik.
-
-Built on the MEAN stack - Mongo, Angular, Express, Node. See http://mean.io/. We _might_ sub out Mongo/Mongoose for PostgreS/Bookshelf. Thoughts appreciated.
-
-This project was scaffolded with the yeoman generator angular-fullstack: https://github.com/DaftMonk/generator-angular-fullstack. The juicy stuff is in client/ and server/.
+MentorMe is a mentor matchmaking app 
 
 ## Participants
-* Github: @TheBeege kik: TehBeege
+* Github: @TheBeege 
 * Add yourself here whenever you submit a pull request!
 
 ## Getting started
+TODO: Update this
 1. Download and install Node.js: https://nodejs.org/. This automatically installs NPM, Node package manager. You can use this to install additional libraries and utilities.
 2. Fork this repo, then clone your fork. Aren't familiar with Git and Github? See https://try.github.io/
 3. In your command line of choice, navigate to the project folder and simply run `npm install`. NPM will look at packages.json to find dependencies and install them.
