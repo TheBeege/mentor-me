@@ -1,0 +1,91 @@
+{
+  "swagger": "2.0",
+  "paths": {
+    "/api/v1/user": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Creates a new user.",
+        "operationId": "newUser",
+        "parameters": [
+          {
+            "uniqueItems": true,
+            "x-go-name": "Username",
+            "description": "the username of the new user",
+            "name": "username",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "x-go-name": "DisplayName",
+            "description": "the pretty name or nickname of the new user",
+            "name": "display_name",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "uniqueItems": true,
+            "x-go-name": "Email",
+            "description": "the email of the new user",
+            "name": "email",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "x-go-name": "Password",
+            "description": "the password of the new user",
+            "name": "password",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/models.User"
+          },
+          "default": {
+            "$ref": "#/responses/errorResponse"
+          }
+        }
+      }
+    },
+    "/api/v1/user/{id}": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Gets info for a user.",
+        "operationId": "getUser",
+        "parameters": [
+          {
+            "uniqueItems": true,
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "ID",
+            "description": "the ID of the user",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/models.User"
+          },
+          "default": {
+            "$ref": "#/responses/errorResponse"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {}
+}
