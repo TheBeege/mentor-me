@@ -94,7 +94,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
       ,display_name
       ,email
       ,created
-    FROM public.user
+    FROM main.user
     WHERE user_id = $1
     `, userID.ID)
 	user := new(models.User)
@@ -105,9 +105,15 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		&user.Email,
 		&user.Created,
 	); err != nil {
-		log.Println("Error fetching requested user from database. UserID: ", userID, " -- Error: ", err)
-		returnHTTPErrorResponse(w, 310, "Error fetching user")
-		return
+		if err == sql.ErrNoRows {
+			log.Println("Received request for nonexistent user. UserID: ", userID)
+			returnHTTPErrorResponse(w, 320, "User does not exist")
+			return
+		} else {
+			log.Println("Error fetching requested user from database. UserID: ", userID, " -- Error: ", err)
+			returnHTTPErrorResponse(w, 310, "Error fetching user")
+			return
+		}
 	}
 
 	if err := json.NewEncoder(w).Encode(user); err != nil {
@@ -146,7 +152,7 @@ func NewUser(w http.ResponseWriter, r *http.Request) {
 
 	var userInsertID int
 	err = tx.QueryRow(`
-    INSERT INTO public.user
+    INSERT INTO main.user
     (username, display_name, email, password, created, last_activity)
     VALUES ($1, $2, $3, $4, now(), now())
     returning user_id;

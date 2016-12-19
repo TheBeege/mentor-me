@@ -1,5 +1,11 @@
 package models
 
+import (
+	"encoding/json"
+	"fmt"
+	"time"
+)
+
 // User represents an end user on the site. Includes all info necessary to identify a user and includes that user's playlists.
 // swagger:model
 type User struct {
@@ -27,10 +33,10 @@ type User struct {
 	Password string `json:"password"`
 
 	// the time the user was created
-	Created JSONTime `json:"created"`
+	Created time.Time `json:"created"`
 
 	// the last time the user interacted with the site
-	LastActivity JSONTime `json:"last_activity"`
+	LastActivity time.Time `json:"last_activity"`
 }
 
 // UserIDParam is used for the GetUser API operation
@@ -67,4 +73,38 @@ type NewUserParam struct {
 	//
 	// in: body
 	Password string `json:"password"`
+}
+
+// MarshalJSON allows us to Marshal Users such that the Created and
+// LastActivity Times are represented in RFC 3339 format.
+func (u *User) MarshalJSON() ([]byte, error) {
+	type Alias User
+	return json.Marshal(&struct {
+		Created      string `json:"created"`
+		LastActivity string `json:"last_activity"`
+		*Alias
+	}{
+		Created:      fmt.Sprintf(`%s`, u.Created.Format(time.RFC3339)),
+		LastActivity: fmt.Sprintf(`%s`, u.LastActivity.Format(time.RFC3339)),
+		Alias:        (*Alias)(u),
+	})
+}
+
+// UnmarshalJSON allows us to UnmarshalJSON Users such that the Created and
+// LastActivity Times can be parsed from RFC 3339 time strings
+func (u *User) UnmarshalJSON(data []byte) error {
+	type Alias User
+	aux := &struct {
+		Created      string `json:"created"`
+		LastActivity string `json:"last_activity"`
+		*Alias
+	}{
+		Alias: (*Alias)(u),
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+	u.Created, _ = time.Parse(time.RFC3339, aux.Created)
+	u.LastActivity, _ = time.Parse(time.RFC3339, aux.LastActivity)
+	return nil
 }
