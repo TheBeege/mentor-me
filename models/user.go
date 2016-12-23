@@ -82,10 +82,12 @@ func (u *User) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		Created      string `json:"created"`
 		LastActivity string `json:"last_activity"`
+		Password     string `json:"-"`
 		*Alias
 	}{
 		Created:      fmt.Sprintf(`%s`, u.Created.Format(time.RFC3339)),
 		LastActivity: fmt.Sprintf(`%s`, u.LastActivity.Format(time.RFC3339)),
+		Password:     u.Password,
 		Alias:        (*Alias)(u),
 	})
 }
