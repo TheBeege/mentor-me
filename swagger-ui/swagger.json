@@ -46,6 +46,24 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "x-go-name": "Description",
+            "description": "a brief self-description of the user",
+            "name": "description",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "x-go-name": "IconURL",
+            "description": "a URL pointing to the user's icon",
+            "name": "icon_url",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {

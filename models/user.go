@@ -30,13 +30,19 @@ type User struct {
 	Email string `json:"email"`
 
 	// the user's password. we may be able to avoid doing this. TODO: check
-	Password string `json:"password"`
+	Password string `json:"password,omitempty"`
 
 	// the time the user was created
 	Created time.Time `json:"created"`
 
 	// the last time the user interacted with the site
 	LastActivity time.Time `json:"last_activity"`
+
+	// a brief self-description of the user
+	Description string `json:"description"`
+
+	// a URL pointing to the user's icon
+	IconURL string `json:"icon_url"`
 }
 
 // UserIDParam is used for the GetUser API operation
@@ -73,6 +79,16 @@ type NewUserParam struct {
 	//
 	// in: body
 	Password string `json:"password,omitempty"`
+
+	// a brief self-description of the user
+	//
+	// in: body
+	Description string `json:"description"`
+
+	// a URL pointing to the user's icon
+	//
+	// in: body
+	IconURL string `json:"icon_url"`
 }
 
 // MarshalJSON allows us to Marshal Users such that the Created and
@@ -82,13 +98,13 @@ func (u *User) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		Created      string `json:"created"`
 		LastActivity string `json:"last_activity"`
-		Password     string `json:"password,omitempty"`
+		//Password     string `json:"password,omitempty"`
 		*Alias
 	}{
 		Created:      fmt.Sprintf(`%s`, u.Created.Format(time.RFC3339)),
 		LastActivity: fmt.Sprintf(`%s`, u.LastActivity.Format(time.RFC3339)),
-		Password:     "",
-		Alias:        (*Alias)(u),
+		//Password:     "",
+		Alias: (*Alias)(u),
 	})
 }
 

@@ -8,9 +8,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 
 	"github.com/TheBeege/mentor-me/models"
 
@@ -38,7 +39,7 @@ func main() {
 	var err error
 	dbCon, err = sql.Open("postgres", conString)
 	if err != nil {
-		log.Println("Error connecting to database: ", err)
+		log.Println("Error connecting to database:", err)
 		return
 	}
 	defer dbCon.Close()
@@ -74,7 +75,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	urlVars := mux.Vars(r)
 	idString, ok := urlVars["id"]
 	if !ok {
-		log.Println("Error retrieving user ID from request. urlVars: ", urlVars)
+		log.Println("Error retrieving user ID from request. urlVars:", urlVars)
 		returnHTTPErrorResponse(w, 300, "Error fetching user")
 		return
 	}
@@ -82,20 +83,20 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	var err error
 	userID.ID, err = strconv.Atoi(idString)
 	if err != nil {
-		log.Println("Error converting user ID to integer from request. urlVars: ", urlVars)
+		log.Println("Error converting user ID to integer from request. urlVars:", urlVars)
 		returnHTTPErrorResponse(w, 305, "Error fetching user")
 		return
 	}
 
 	row := dbCon.QueryRow(`
     SELECT
-      user_id
+      id
       ,username
       ,display_name
       ,email
       ,created
     FROM main.user
-    WHERE user_id = $1
+    WHERE id = $1
     `, userID.ID)
 	user := new(models.User)
 	if err := row.Scan(
@@ -106,18 +107,17 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		&user.Created,
 	); err != nil {
 		if err == sql.ErrNoRows {
-			log.Println("Received request for nonexistent user. UserID: ", userID)
+			log.Println("Received request for nonexistent user. UserID:", userID)
 			returnHTTPErrorResponse(w, 320, "User does not exist")
 			return
-		} else {
-			log.Println("Error fetching requested user from database. UserID: ", userID, " -- Error: ", err)
-			returnHTTPErrorResponse(w, 310, "Error fetching user")
-			return
 		}
+		log.Println("Error fetching requested user from database. UserID:", userID, "-- Error:", err)
+		returnHTTPErrorResponse(w, 310, "Error fetching user")
+		return
 	}
 
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		log.Println("Error encoding response for requested user. User: ", user, " -- Error: ", err)
+		log.Println("Error encoding response for requested user. User:", user, "-- Error:", err)
 		returnHTTPErrorResponse(w, 340, "Error fetching user")
 		return
 	}
@@ -136,7 +136,7 @@ func NewUser(w http.ResponseWriter, r *http.Request) {
 	var u models.NewUserParam
 	err := decoder.Decode(&u)
 	if err != nil {
-		log.Println("Error decoding request body for NewUser. Body: ", r.Body, " -- Error: ", err)
+		log.Println("Error decoding request body for NewUser. Body:", r.Body, "-- Error:", err)
 		returnHTTPErrorResponse(w, 200, "Error creating new user")
 		return
 	}
@@ -144,7 +144,7 @@ func NewUser(w http.ResponseWriter, r *http.Request) {
 
 	tx, err := dbCon.Begin()
 	if err != nil {
-		log.Println("Error starting new transaction for inserting new channel. Error: ", err, " -- User: ", u)
+		log.Println("Error starting new transaction for inserting new channel. Error:", err, "-- User:", u)
 		returnHTTPErrorResponse(w, 210, "Error creating new user")
 		return
 	}
@@ -155,19 +155,37 @@ func NewUser(w http.ResponseWriter, r *http.Request) {
     INSERT INTO main.user
     (username, display_name, email, password, created, last_activity)
     VALUES ($1, $2, $3, $4, now(), now())
-    returning user_id;
+    returning id;
   `, u.Username, u.DisplayName, u.Email, u.Password).Scan(&userInsertID)
-	// TODO: logic for unique name/email collisions
 	if err != nil {
-		log.Println("Error inserting new user. Error: ", err, " -- User: ", u)
-		returnHTTPErrorResponse(w, 220, "Error creating new user")
+		if err.(*pq.Error).Code.Name() == "unique_violation" {
+			constraintPattern, _ := regexp.Compile("violates unique constraint \"(.+?)\"")
+			matchSlice := constraintPattern.FindSubmatch([]byte(err.(*pq.Error).Message))
+			if len(matchSlice) < 2 {
+				log.Println("Received request to create user but encountered unknown unique constraint violation. Error:", err)
+				returnHTTPErrorResponse(w, 230, "Unknown error attempting to create user")
+				return
+			}
+			constraint := string(matchSlice[1])
+			if constraint == "user_unq_username" {
+				log.Println("Received request to create user with duplicate username. Username:", u.Username)
+				returnHTTPErrorResponse(w, 240, "Username already in use")
+				return
+			} else if constraint == "user_unq_email" {
+				log.Println("Received request to create user with duplicate email. Email:", u.Email)
+				returnHTTPErrorResponse(w, 250, "Email already in use")
+				return
+			}
+		}
+		log.Println("Error inserting new user. Error:", err, "-- User:", u)
+		returnHTTPErrorResponse(w, 260, "Error creating new user")
 		return
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		log.Println("Error committing transaction for new user. Error: ", err, " -- User: ", u)
-		returnHTTPErrorResponse(w, 230, "Error creating new user")
+		log.Println("Error committing transaction for new user. Error:", err, "-- User:", u)
+		returnHTTPErrorResponse(w, 280, "Error creating new user")
 		return
 	}
 	log.Println("Successfully created new user")
@@ -176,6 +194,6 @@ func NewUser(w http.ResponseWriter, r *http.Request) {
 func returnHTTPErrorResponse(w http.ResponseWriter, code int, message string) {
 	r := &errorResponse{ErrorCode: code, ErrorMessage: message}
 	if err := json.NewEncoder(w).Encode(r); err != nil {
-		log.Println("Failed to write HTTP Error Response. Error: ", err)
+		log.Println("Failed to write HTTP Error Response. Error:", err)
 	}
 }
