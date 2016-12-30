@@ -56,7 +56,7 @@ build: test swagger
 
 dump_schema:
 	@echo "=== pg_dump ==="
-	@pg_dump -U postgres --schema-only --no-owner mentor_me > schema.sql
+	@pg_dump -U ${DBUSER} --schema-only --no-owner mentor_me > schema.sql
 
 test: fmt vet lint errcheck
 	@echo "=== go test ==="
