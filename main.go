@@ -51,6 +51,10 @@ func main() {
 	router.HandleFunc("/api/v1/user/{id:[0-9]+}", GetUser).Methods("GET")
 	router.HandleFunc("/api/v1/user", NewUser).Methods("POST")
 
+	router.HandleFunc("/api/v1/topic/{id:[0-9]+}", GetTopic).Methods("GET")
+	router.HandleFunc("/api/v1/topic", NewTopic).Methods("POST")
+	router.HandleFunc("/api/v1/topic_like/{part:.+}", GetTopicsLike).Methods("GET")
+
 	router.PathPrefix("/swagger-ui/").Handler(http.StripPrefix("/swagger-ui/", http.FileServer(http.Dir("./swagger-ui/"))))
 
 	log.Println("Time to serve it up!")
@@ -189,6 +193,177 @@ func NewUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Println("Successfully created new user")
+}
+
+// GetTopic swagger:route GET /api/v1/topic/{id} topic getTopic
+//
+// Gets info for a topic.
+//
+// Responses:
+//    default: errorResponse
+//        200: models.Topic
+func GetTopic(w http.ResponseWriter, r *http.Request) {
+	var topicID models.TopicIDParam
+	urlVars := mux.Vars(r)
+	idString, ok := urlVars["id"]
+	if !ok {
+		log.Println("Error retrieving topic ID from request. urlVars:", urlVars)
+		// TODO: Should we be using similar error numbers or new ones?
+		returnHTTPErrorResponse(w, 300, "Error fetching topic")
+		return
+	}
+
+	var err error
+	topicID.ID, err = strconv.Atoi(idString)
+	if err != nil {
+		log.Println("Error converting topic ID to integer from request. urlVars:", urlVars)
+		returnHTTPErrorResponse(w, 305, "Error fetching topic")
+		return
+	}
+
+	row := dbCon.QueryRow(`
+    SELECT
+      id
+			,name
+    FROM main.topic
+    WHERE id = $1
+    `, topicID.ID)
+	topic := new(models.Topic)
+	if err := row.Scan(
+		&topic.ID,
+		&topic.Name,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("Received request for nonexistent topic. TopicID:", topicID)
+			returnHTTPErrorResponse(w, 320, "Topic does not exist")
+			return
+		}
+		log.Println("Error fetching requested topic from database. TopicID:", topicID, "-- Error:", err)
+		returnHTTPErrorResponse(w, 310, "Error fetching topic")
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(topic); err != nil {
+		log.Println("Error encoding response for requested topic. Topic:", topic, "-- Error:", err)
+		returnHTTPErrorResponse(w, 340, "Error fetching topic")
+		return
+	}
+}
+
+// NewTopic swagger:route POST /api/v1/topic topic newTopic
+//
+// Constructs and persists a new Topic based on the provided parameters
+//
+// Responses:
+//    default: errorResponse
+//        200: models.Topic
+func NewTopic(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var t models.NewTopicParam
+	err := decoder.Decode(&t)
+	if err != nil {
+		log.Println("Error decoding request body for NewTopic. Body:", r.Body, "-- Error:", err)
+		returnHTTPErrorResponse(w, 200, "Error creating new topic")
+		return
+	}
+
+	tx, err := dbCon.Begin()
+	if err != nil {
+		log.Println("Error starting new transaction for inserting topic. Error:", err, "-- Topic:", t)
+		returnHTTPErrorResponse(w, 210, "Error creating new topic")
+		return
+	}
+	defer tx.Rollback()
+
+	var topicInsertID int
+	err = tx.QueryRow(`
+    INSERT INTO main.topic
+    (name)
+    VALUES ($1)
+    returning id;
+  `, t.Name).Scan(&topicInsertID)
+	if err != nil {
+		if err.(*pq.Error).Code.Name() == "unique_violation" {
+			constraintPattern, _ := regexp.Compile("violates unique constraint \"(.+?)\"")
+			matchSlice := constraintPattern.FindSubmatch([]byte(err.(*pq.Error).Message))
+			if len(matchSlice) < 2 {
+				log.Println("Received request to create topic but encountered unknown unique constraint violation. Error:", err)
+				returnHTTPErrorResponse(w, 230, "Unknown error attempting to create topic")
+				return
+			}
+			constraint := string(matchSlice[1])
+			if constraint == "topic_unq_name" {
+				log.Println("Received request to create topic with duplicate name. Name:", t.Name)
+				returnHTTPErrorResponse(w, 240, "Topic name already in use")
+				return
+			}
+			// TODO: Is there a better way to organize this?
+		}
+		log.Println("Error inserting new topic. Error:", err, "-- Topic:", t)
+		returnHTTPErrorResponse(w, 260, "Error creating new topic")
+		return
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Println("Error committing transaction for new topic. Error:", err, "-- Topic:", t)
+		returnHTTPErrorResponse(w, 280, "Error creating new topic")
+		return
+	}
+	log.Println("Successfully created new topic")
+}
+
+// GetTopicsLike swagger:route GET /api/v1/topic_like/{part} topic getTopicsLike
+//
+// Gets topics similar to the given string
+//
+// Responses:
+//    default: errorResponse
+//        200: models.Topic
+func GetTopicsLike(w http.ResponseWriter, r *http.Request) {
+	// TODO: Do I need to do anything special to return a slice of topics...?
+	urlVars := mux.Vars(r)
+	partString, ok := urlVars["part"]
+	if !ok {
+		log.Println("Error retrieving topic part from request. urlVars:", urlVars)
+		returnHTTPErrorResponse(w, 300, "Error retrieving similar topic")
+		return
+	}
+
+	topicSlice := make([]*models.Topic, 0)
+	rows, err := dbCon.Query(`
+    SELECT
+      id
+			,name
+    FROM main.topic
+    WHERE name LIKE '%' || $1 || '%'
+    `, partString)
+	// TODO: Check if this is the proper way to do a parameterized LIKE
+	if err != nil {
+		log.Println("Error retrieving similar topics from database. TopicPart:", partString, " -- Error:", err)
+		returnHTTPErrorResponse(w, 320, "Error retrieving similar topic")
+		return
+	}
+	for rows.Next() {
+		topic := new(models.Topic)
+		if err := rows.Scan(
+			&topic.ID,
+			&topic.Name,
+		); err != nil {
+			log.Println("Error scanning similar topic from database. TopicPart:", partString, "-- Error:", err)
+			returnHTTPErrorResponse(w, 310, "Error retrieving similar topic")
+			continue
+		}
+		topicSlice = append(topicSlice, topic)
+	}
+
+	if err := json.NewEncoder(w).Encode(topicSlice); err != nil {
+		log.Println("Error encoding response for requested topics. TopicSlice:", topicSlice, "-- Error:", err)
+		returnHTTPErrorResponse(w, 340, "Error retrieving similar topic")
+		return
+	}
+
+	// TODO: Do fancy fuzzy-matching stuff
 }
 
 func returnHTTPErrorResponse(w http.ResponseWriter, code int, message string) {
