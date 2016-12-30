@@ -55,6 +55,9 @@ func main() {
 	router.HandleFunc("/api/v1/topic", NewTopic).Methods("POST")
 	router.HandleFunc("/api/v1/topic_like/{part:.+}", GetTopicsLike).Methods("GET")
 
+	router.HandleFunc("/api/v1/mentor_topic", NewMentorTopic).Methods("POST")
+	router.HandleFunc("/api/v1/find_mentors/{topic:.+}/{level:[1-5]}", FindMentors).Methods("GET")
+
 	router.PathPrefix("/swagger-ui/").Handler(http.StripPrefix("/swagger-ui/", http.FileServer(http.Dir("./swagger-ui/"))))
 
 	log.Println("Time to serve it up!")
@@ -67,7 +70,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
 }
 
-// GetUser swagger:route GET /api/v1/user/{id} user getUser
+// GetUser swagger:route GET /api/v1/user/{id} Users GetUser
 //
 // Gets info for a user.
 //
@@ -127,10 +130,9 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// NewUser constructs and persists a new Channel based on the provided parameters
-// swagger:route POST /api/v1/user user newUser
+// NewUser swagger:route POST /api/v1/user Users NewUser
 //
-// Creates a new user.
+// Constructs and persists a new user based on the provided parameters
 //
 // Responses:
 //    default: errorResponse
@@ -195,7 +197,7 @@ func NewUser(w http.ResponseWriter, r *http.Request) {
 	log.Println("Successfully created new user")
 }
 
-// GetTopic swagger:route GET /api/v1/topic/{id} topic getTopic
+// GetTopic swagger:route GET /api/v1/topic/{id} Topics GetTopic
 //
 // Gets info for a topic.
 //
@@ -250,7 +252,7 @@ func GetTopic(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// NewTopic swagger:route POST /api/v1/topic topic newTopic
+// NewTopic swagger:route POST /api/v1/topic Topics NewTopic
 //
 // Constructs and persists a new Topic based on the provided parameters
 //
@@ -313,7 +315,7 @@ func NewTopic(w http.ResponseWriter, r *http.Request) {
 	log.Println("Successfully created new topic")
 }
 
-// GetTopicsLike swagger:route GET /api/v1/topic_like/{part} topic getTopicsLike
+// GetTopicsLike swagger:route GET /api/v1/topic_like/{part} Topics GetTopicsLike
 //
 // Gets topics similar to the given string
 //
@@ -321,7 +323,6 @@ func NewTopic(w http.ResponseWriter, r *http.Request) {
 //    default: errorResponse
 //        200: models.Topic
 func GetTopicsLike(w http.ResponseWriter, r *http.Request) {
-	// TODO: Do I need to do anything special to return a slice of topics...?
 	urlVars := mux.Vars(r)
 	partString, ok := urlVars["part"]
 	if !ok {
@@ -338,7 +339,6 @@ func GetTopicsLike(w http.ResponseWriter, r *http.Request) {
     FROM main.topic
     WHERE name LIKE '%' || $1 || '%'
     `, partString)
-	// TODO: Check if this is the proper way to do a parameterized LIKE
 	if err != nil {
 		log.Println("Error retrieving similar topics from database. TopicPart:", partString, " -- Error:", err)
 		returnHTTPErrorResponse(w, 320, "Error retrieving similar topic")
@@ -364,6 +364,142 @@ func GetTopicsLike(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: Do fancy fuzzy-matching stuff
+}
+
+// NewMentorTopic swagger:route POST /api/v1/mentor_topic Mentors NewMentorTopic
+//
+// Constructs and persists a new MentorTopic based on the provided parameters
+//
+// Responses:
+//    default: errorResponse
+//        200: models.MentorTopic
+func NewMentorTopic(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var mt models.MentorTopic
+	err := decoder.Decode(&mt)
+	if err != nil {
+		log.Println("Error decoding request body for new MentorTopic. Body:", r.Body, "-- Error:", err)
+		returnHTTPErrorResponse(w, 200, "Error creating new mentor topic")
+		return
+	}
+
+	tx, err := dbCon.Begin()
+	if err != nil {
+		log.Println("Error starting new transaction for inserting mentor topic. Error:", err, "-- MentorTopic:", mt)
+		returnHTTPErrorResponse(w, 210, "Error creating new mentor topic")
+		return
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec(`
+    INSERT INTO main.mentor_topic
+    (
+			user_id
+			,topic_id
+			,level
+			,description
+		)
+    VALUES ($1, $2, $3, $4)
+  `, mt.UserID, mt.TopicID, mt.Level, mt.Description)
+	if err != nil {
+		if err.(*pq.Error).Code.Name() == "unique_violation" {
+			constraintPattern, _ := regexp.Compile("violates unique constraint \"(.+?)\"")
+			matchSlice := constraintPattern.FindSubmatch([]byte(err.(*pq.Error).Message))
+			if len(matchSlice) < 2 {
+				log.Println("Received request to create mentor topic but encountered unknown unique constraint violation. Error:", err)
+				returnHTTPErrorResponse(w, 230, "Unknown error attempting to create mentor topic")
+				return
+			}
+			constraint := string(matchSlice[1])
+			if constraint == "mentor_topic_id" {
+				log.Println("Received request to create mentor topic with duplicate user and topic IDs. UserID:", mt.UserID, "TopicID:", mt.TopicID)
+				returnHTTPErrorResponse(w, 240, "Mentor topic combination already in use")
+				return
+			}
+			// TODO: Is there a better way to organize this?
+		}
+		log.Println("Error inserting new mentor topic. Error:", err, "-- MentorTopic:", mt)
+		returnHTTPErrorResponse(w, 260, "Error creating new mentor topic")
+		return
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Println("Error committing transaction for new mentor topic. Error:", err, "-- MentorTopic:", mt)
+		returnHTTPErrorResponse(w, 280, "Error creating new mentor topic")
+		return
+	}
+	log.Println("Successfully created new mentor topic")
+}
+
+// FindMentors swagger:route GET /api/v1/find_mentors/{topic}/{level} Mentors FindMentors
+//
+// Returns a list of mentors that are listed for the given topic at or above the given level
+//
+// Responses:
+//    default: errorResponse
+//        200: []models.User
+func FindMentors(w http.ResponseWriter, r *http.Request) {
+	urlVars := mux.Vars(r)
+	topicName, ok := urlVars["topic"]
+	if !ok {
+		log.Println("Error retrieving topic name from request. urlVars:", urlVars)
+		returnHTTPErrorResponse(w, 300, "Error retrieving mentors")
+		return
+	}
+	level, err := strconv.Atoi(urlVars["level"])
+	if err != nil {
+		log.Println("Error retrieving level from request. urlVars:", urlVars, "Error:", err)
+		returnHTTPErrorResponse(w, 300, "Error retrieving mentors")
+		return
+	}
+
+	userSlice := make([]*models.User, 0)
+	rows, err := dbCon.Query(`
+	SELECT
+		u.id
+		,u.username
+		,u.display_name
+		,u.created
+		,u.last_activity
+		,u.description
+		,u.icon_url
+	FROM main.mentor_topic mt
+	JOIN main.user u
+	ON mt.user_id = u.id
+	JOIN main.topic t
+	ON mt.topic_id = t.id
+	WHERE t.name = $1
+	AND mt.level >= $2
+	`, topicName, level)
+	if err != nil {
+		log.Println("Error retrieving mentors from database. TopicName:", topicName, "Level:", level, "-- Error:", err)
+		returnHTTPErrorResponse(w, 320, "Error retrieving mentors")
+		return
+	}
+	for rows.Next() {
+		user := new(models.User)
+		if err := rows.Scan(
+			&user.ID,
+			&user.Username,
+			&user.DisplayName,
+			&user.Created,
+			&user.LastActivity,
+			&user.Description,
+			&user.IconURL,
+		); err != nil {
+			log.Println("Error scanning mentor user from database. TopicName:", topicName, "Level:", level, "-- Error:", err)
+			returnHTTPErrorResponse(w, 310, "Error retrieving mentors")
+			continue
+		}
+		userSlice = append(userSlice, user)
+	}
+
+	if err := json.NewEncoder(w).Encode(userSlice); err != nil {
+		log.Println("Error encoding response for requested topics. UsersSlice:", userSlice, "-- Error:", err)
+		returnHTTPErrorResponse(w, 340, "Error retrieving similar topic")
+		return
+	}
 }
 
 func returnHTTPErrorResponse(w http.ResponseWriter, code int, message string) {

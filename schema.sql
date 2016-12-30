@@ -86,7 +86,7 @@ CREATE TABLE "user" (
     display_name text,
     email text,
     created timestamp without time zone DEFAULT now(),
-    last_activity timestamp without time zone,
+    last_activity timestamp without time zone DEFAULT now() NOT NULL,
     password text,
     description text,
     icon_url text
@@ -143,11 +143,11 @@ ALTER TABLE ONLY topic
 
 
 --
--- Name: topic_name; Type: CONSTRAINT; Schema: main; Owner: -; Tablespace: 
+-- Name: topic_unq_name; Type: CONSTRAINT; Schema: main; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY topic
-    ADD CONSTRAINT topic_name UNIQUE (name);
+    ADD CONSTRAINT topic_unq_name UNIQUE (name);
 
 
 --

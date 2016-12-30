@@ -6,10 +6,11 @@ BINARY_NAME="mentor-me"
 BRANCH=`git rev-parse --abbrev-ref HEAD`
 COMMIT=`git rev-parse --short HEAD`
 GOLDFLAGS="-X main.branch=$(BRANCH) -X main.commit=$(COMMIT)"
+DBUSER=postgres
 
 PACKAGES="models"
 
-all: test build
+all: test build dump_schema
 
 setup:
 	@echo "=== setup ==="
@@ -53,6 +54,10 @@ build: test swagger
 	@mkdir -p bin/
 	@go build -ldflags=$(GOLDFLAGS) -o bin/${BINARY_NAME}
 
+dump_schema:
+	@echo "=== pg_dump ==="
+	@pg_dump -U postgres --schema-only --no-owner mentor_me > schema.sql
+
 test: fmt vet lint errcheck
 	@echo "=== go test ==="
 	@go test ./... -cover
@@ -69,4 +74,4 @@ deploy: test
 clean:
 	@rm -rf bin/* pkg/*
 
-.PHONY: setup cloc errcheck vet lint fmt install build test deploy swagger clean
+.PHONY: setup cloc errcheck vet lint fmt install build test deploy swagger clean dump_schema

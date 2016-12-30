@@ -22,7 +22,7 @@ type Topic struct {
 }
 
 // TopicIDParam is used for the GetTopic API operation
-// swagger:parameters getTopic
+// swagger:parameters GetTopic
 type TopicIDParam struct {
 	// the ID of the topic
 	//
@@ -32,7 +32,7 @@ type TopicIDParam struct {
 }
 
 // NewTopicParam is used for the NewTopic API operation
-// swagger:parameters newTopic
+// swagger:parameters NewTopic
 type NewTopicParam struct {
 	// the name of the new topic
 	//
@@ -42,7 +42,7 @@ type NewTopicParam struct {
 }
 
 // TopicLikeParam is used for the GetTopicLike API operation
-// swagger:parameters getTopicsLike
+// swagger:parameters GetTopicsLike
 type TopicLikeParam struct {
 	// string to search for similar topics
 	//

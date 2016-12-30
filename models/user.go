@@ -27,7 +27,7 @@ type User struct {
 	//
 	// required: true
 	// pattern: [^@]+@[\w\d\.]+
-	Email string `json:"email"`
+	Email string `json:"email,omitempty"`
 
 	// the user's password. we may be able to avoid doing this. TODO: check
 	Password string `json:"password,omitempty"`
@@ -46,7 +46,7 @@ type User struct {
 }
 
 // UserIDParam is used for the GetUser API operation
-// swagger:parameters getUser
+// swagger:parameters GetUser
 type UserIDParam struct {
 	// the ID of the user
 	//
@@ -56,7 +56,7 @@ type UserIDParam struct {
 }
 
 // NewUserParam is used for the NewUser API operation
-// swagger:parameters newUser
+// swagger:parameters NewUser
 type NewUserParam struct {
 	// the username of the new user
 	//

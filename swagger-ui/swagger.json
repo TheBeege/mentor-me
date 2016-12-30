@@ -1,13 +1,113 @@
 {
   "swagger": "2.0",
   "paths": {
+    "/api/v1/find_mentors/{topic}/{level}": {
+      "get": {
+        "description": "Returns a list of mentors that are listed for the given topic at or above the given level",
+        "tags": [
+          "Mentors"
+        ],
+        "operationId": "FindMentors",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "TopicName",
+            "description": "the name of the desired topic area",
+            "name": "topic",
+            "in": "path",
+            "required": true
+          },
+          {
+            "pattern": "[1-5]",
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "Level",
+            "description": "the desired level of proficiency in the desired topic",
+            "name": "level",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/models.User"
+          },
+          "default": {
+            "$ref": "#/responses/errorResponse"
+          }
+        }
+      }
+    },
+    "/api/v1/mentor_topic": {
+      "post": {
+        "description": "Constructs and persists a new MentorTopic based on the provided parameters",
+        "tags": [
+          "Mentors"
+        ],
+        "operationId": "NewMentorTopic",
+        "parameters": [
+          {
+            "x-go-name": "UserID",
+            "description": "the ID of the mentor/user",
+            "name": "user_id",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "x-go-name": "TopicID",
+            "description": "the ID of the topic",
+            "name": "topic_id",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "pattern": "[1-5]",
+            "x-go-name": "Level",
+            "description": "the self-assessed level of the mentor's skill in the topic",
+            "name": "level",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "x-go-name": "Description",
+            "description": "a brief description of the mentor's experience in the topic",
+            "name": "description",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/models.MentorTopic"
+          },
+          "default": {
+            "$ref": "#/responses/errorResponse"
+          }
+        }
+      }
+    },
     "/api/v1/topic": {
       "post": {
         "description": "Constructs and persists a new Topic based on the provided parameters",
         "tags": [
-          "topic"
+          "Topics"
         ],
-        "operationId": "newTopic",
+        "operationId": "NewTopic",
         "parameters": [
           {
             "uniqueItems": true,
@@ -33,10 +133,10 @@
     "/api/v1/topic/{id}": {
       "get": {
         "tags": [
-          "topic"
+          "Topics"
         ],
         "summary": "Gets info for a topic.",
-        "operationId": "getTopic",
+        "operationId": "GetTopic",
         "parameters": [
           {
             "uniqueItems": true,
@@ -62,9 +162,9 @@
       "get": {
         "description": "Gets topics similar to the given string",
         "tags": [
-          "topic"
+          "Topics"
         ],
-        "operationId": "getTopicsLike",
+        "operationId": "GetTopicsLike",
         "parameters": [
           {
             "type": "string",
@@ -86,11 +186,11 @@
     },
     "/api/v1/user": {
       "post": {
+        "description": "Constructs and persists a new user based on the provided parameters",
         "tags": [
-          "user"
+          "Users"
         ],
-        "summary": "Creates a new user.",
-        "operationId": "newUser",
+        "operationId": "NewUser",
         "parameters": [
           {
             "uniqueItems": true,
@@ -162,10 +262,10 @@
     "/api/v1/user/{id}": {
       "get": {
         "tags": [
-          "user"
+          "Users"
         ],
         "summary": "Gets info for a user.",
-        "operationId": "getUser",
+        "operationId": "GetUser",
         "parameters": [
           {
             "uniqueItems": true,
