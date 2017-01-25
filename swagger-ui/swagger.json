@@ -38,6 +38,46 @@
         }
       }
     },
+    "/api/v1/mentor_request": {
+      "post": {
+        "description": "Constructs and persists a new MentorRequest based on the provided parameters",
+        "tags": [
+          "Mentors"
+        ],
+        "operationId": "NewMentorRequest",
+        "parameters": [
+          {
+            "x-go-name": "MentorID",
+            "description": "the ID of the mentor user",
+            "name": "mentor_id",
+            "in": "body",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "uniqueItems": true,
+            "x-go-name": "MenteeID",
+            "description": "the ID of the mentee user",
+            "name": "mentee_id",
+            "in": "body",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/models.MentorRequest"
+          },
+          "default": {
+            "$ref": "#/responses/errorResponse"
+          }
+        }
+      }
+    },
     "/api/v1/mentor_topic": {
       "post": {
         "description": "Constructs and persists a new MentorTopic based on the provided parameters",

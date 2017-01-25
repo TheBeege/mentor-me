@@ -36,6 +36,19 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
+-- Name: mentor_request; Type: TABLE; Schema: main; Owner: -; Tablespace: 
+--
+
+CREATE TABLE mentor_request (
+    mentor_id integer NOT NULL,
+    mentee_id integer NOT NULL,
+    requested timestamp without time zone NOT NULL,
+    accepted timestamp without time zone,
+    rejected timestamp without time zone
+);
+
+
+--
 -- Name: mentor_topic; Type: TABLE; Schema: main; Owner: -; Tablespace: 
 --
 
@@ -124,6 +137,14 @@ ALTER TABLE ONLY topic ALTER COLUMN id SET DEFAULT nextval('topic_id_seq'::regcl
 --
 
 ALTER TABLE ONLY "user" ALTER COLUMN id SET DEFAULT nextval('user_user_id_seq'::regclass);
+
+
+--
+-- Name: mentor_request_pk; Type: CONSTRAINT; Schema: main; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY mentor_request
+    ADD CONSTRAINT mentor_request_pk PRIMARY KEY (mentor_id, mentee_id);
 
 
 --
