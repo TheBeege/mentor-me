@@ -28,7 +28,7 @@ func GetTopic(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		log.Println("Error retrieving topic ID from request. urlVars:", urlVars)
 		// TODO: Should we be using similar error numbers or new ones?
-		utils.ReturnHTTPErrorResponse(w, 300, "Error fetching topic")
+		utils.ReturnHTTPErrorResponse(w, http.StatusBadRequest, 300, "ID missing from request")
 		return
 	}
 
@@ -36,7 +36,7 @@ func GetTopic(w http.ResponseWriter, r *http.Request) {
 	topicID.ID, err = strconv.Atoi(idString)
 	if err != nil {
 		log.Println("Error converting topic ID to integer from request. urlVars:", urlVars)
-		utils.ReturnHTTPErrorResponse(w, 305, "Error fetching topic")
+		utils.ReturnHTTPErrorResponse(w, http.StatusBadRequest, 305, "ID was not an integer")
 		return
 	}
 
@@ -54,17 +54,17 @@ func GetTopic(w http.ResponseWriter, r *http.Request) {
 	); err != nil {
 		if err == sql.ErrNoRows {
 			log.Println("Received request for nonexistent topic. TopicID:", topicID)
-			utils.ReturnHTTPErrorResponse(w, 320, "Topic does not exist")
+			utils.ReturnHTTPErrorResponse(w, http.StatusNotFound, 320, "Topic does not exist")
 			return
 		}
 		log.Println("Error fetching requested topic from database. TopicID:", topicID, "-- Error:", err)
-		utils.ReturnHTTPErrorResponse(w, 310, "Error fetching topic")
+		utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 310, "Error fetching topic")
 		return
 	}
 
 	if err := json.NewEncoder(w).Encode(topic); err != nil {
 		log.Println("Error encoding response for requested topic. Topic:", topic, "-- Error:", err)
-		utils.ReturnHTTPErrorResponse(w, 340, "Error fetching topic")
+		utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 340, "Error fetching topic")
 		return
 	}
 }
@@ -82,14 +82,14 @@ func NewTopic(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&t)
 	if err != nil {
 		log.Println("Error decoding request body for NewTopic. Body:", r.Body, "-- Error:", err)
-		utils.ReturnHTTPErrorResponse(w, 200, "Error creating new topic")
+		utils.ReturnHTTPErrorResponse(w, http.StatusBadRequest, 200, "Request body was not properly formatted")
 		return
 	}
 
 	tx, err := utils.DBCon.Begin()
 	if err != nil {
 		log.Println("Error starting new transaction for inserting topic. Error:", err, "-- Topic:", t)
-		utils.ReturnHTTPErrorResponse(w, 210, "Error creating new topic")
+		utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 210, "Error creating new topic")
 		return
 	}
 	defer tx.Rollback()
@@ -107,26 +107,26 @@ func NewTopic(w http.ResponseWriter, r *http.Request) {
 			matchSlice := constraintPattern.FindSubmatch([]byte(err.(*pq.Error).Message))
 			if len(matchSlice) < 2 {
 				log.Println("Received request to create topic but encountered unknown unique constraint violation. Error:", err)
-				utils.ReturnHTTPErrorResponse(w, 230, "Unknown error attempting to create topic")
+				utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 230, "Unknown error attempting to create topic")
 				return
 			}
 			constraint := string(matchSlice[1])
 			if constraint == "topic_unq_name" {
 				log.Println("Received request to create topic with duplicate name. Name:", t.Name)
-				utils.ReturnHTTPErrorResponse(w, 240, "Topic name already in use")
+				utils.ReturnHTTPErrorResponse(w, http.StatusBadRequest, 240, "Topic name already in use")
 				return
 			}
 			// TODO: Is there a better way to organize this?
 		}
 		log.Println("Error inserting new topic. Error:", err, "-- Topic:", t)
-		utils.ReturnHTTPErrorResponse(w, 260, "Error creating new topic")
+		utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 260, "Error creating new topic")
 		return
 	}
 
 	err = tx.Commit()
 	if err != nil {
 		log.Println("Error committing transaction for new topic. Error:", err, "-- Topic:", t)
-		utils.ReturnHTTPErrorResponse(w, 280, "Error creating new topic")
+		utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 280, "Error creating new topic")
 		return
 	}
 	log.Println("Successfully created new topic")
@@ -144,7 +144,7 @@ func GetTopicsLike(w http.ResponseWriter, r *http.Request) {
 	partString, ok := urlVars["part"]
 	if !ok {
 		log.Println("Error retrieving topic part from request. urlVars:", urlVars)
-		utils.ReturnHTTPErrorResponse(w, 300, "Error retrieving similar topic")
+		utils.ReturnHTTPErrorResponse(w, http.StatusBadRequest, 300, "Part missing from request")
 		return
 	}
 
@@ -158,7 +158,7 @@ func GetTopicsLike(w http.ResponseWriter, r *http.Request) {
     `, partString)
 	if err != nil {
 		log.Println("Error retrieving similar topics from database. TopicPart:", partString, " -- Error:", err)
-		utils.ReturnHTTPErrorResponse(w, 320, "Error retrieving similar topic")
+		utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 320, "Error retrieving similar topic")
 		return
 	}
 	for rows.Next() {
@@ -168,7 +168,7 @@ func GetTopicsLike(w http.ResponseWriter, r *http.Request) {
 			&topic.Name,
 		); err != nil {
 			log.Println("Error scanning similar topic from database. TopicPart:", partString, "-- Error:", err)
-			utils.ReturnHTTPErrorResponse(w, 310, "Error retrieving similar topic")
+			utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 310, "Error retrieving similar topic")
 			continue
 		}
 		topicSlice = append(topicSlice, topic)
@@ -176,7 +176,7 @@ func GetTopicsLike(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(topicSlice); err != nil {
 		log.Println("Error encoding response for requested topics. TopicSlice:", topicSlice, "-- Error:", err)
-		utils.ReturnHTTPErrorResponse(w, 340, "Error retrieving similar topic")
+		utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 340, "Error retrieving similar topic")
 		return
 	}
 

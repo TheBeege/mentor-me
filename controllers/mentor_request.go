@@ -24,14 +24,14 @@ func NewMentorRequest(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&mt)
 	if err != nil {
 		log.Println("Error decoding request body for new MentorRequest. Body:", r.Body, "-- Error:", err)
-		utils.ReturnHTTPErrorResponse(w, 200, "Error creating new mentor request")
+		utils.ReturnHTTPErrorResponse(w, http.StatusBadRequest, 200, "Request body was not properly formatted")
 		return
 	}
 
 	tx, err := utils.DBCon.Begin()
 	if err != nil {
 		log.Println("Error starting new transaction for inserting mentor request. Error:", err, "-- MentorRequest:", mt)
-		utils.ReturnHTTPErrorResponse(w, 210, "Error creating new mentor request")
+		utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 210, "Error creating new mentor request")
 		return
 	}
 	defer tx.Rollback()
@@ -51,26 +51,26 @@ func NewMentorRequest(w http.ResponseWriter, r *http.Request) {
 			matchSlice := constraintPattern.FindSubmatch([]byte(err.(*pq.Error).Message))
 			if len(matchSlice) < 2 {
 				log.Println("Received request to create mentor topic but encountered unknown unique constraint violation. Error:", err)
-				utils.ReturnHTTPErrorResponse(w, 230, "Unknown error attempting to create mentor topic")
+				utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 230, "Unknown error attempting to create mentor topic")
 				return
 			}
 			constraint := string(matchSlice[1])
 			if constraint == "mentor_topic_id" {
 				log.Println("Received request to create mentor topic with duplicate user and topic IDs. UserID:", mt.UserID, "TopicID:", mt.TopicID)
-				utils.ReturnHTTPErrorResponse(w, 240, "Mentor topic combination already in use")
+				utils.ReturnHTTPErrorResponse(w, http.StatusBadRequest, 240, "Mentor topic combination already in use")
 				return
 			}
 			// TODO: Is there a better way to organize this?
 		}
 		log.Println("Error inserting new mentor topic. Error:", err, "-- MentorTopic:", mt)
-		utils.ReturnHTTPErrorResponse(w, 260, "Error creating new mentor topic")
+		utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 260, "Error creating new mentor topic")
 		return
 	}
 
 	err = tx.Commit()
 	if err != nil {
 		log.Println("Error committing transaction for new mentor topic. Error:", err, "-- MentorTopic:", mt)
-		utils.ReturnHTTPErrorResponse(w, 280, "Error creating new mentor topic")
+		utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 280, "Error creating new mentor topic")
 		return
 	}
 	log.Println("Successfully created new mentor topic")

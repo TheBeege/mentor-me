@@ -27,7 +27,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	idString, ok := urlVars["id"]
 	if !ok {
 		log.Println("Error retrieving user ID from request. urlVars:", urlVars)
-		utils.ReturnHTTPErrorResponse(w, 300, "Error fetching user")
+		utils.ReturnHTTPErrorResponse(w, http.StatusBadRequest, 300, "ID missing from request")
 		return
 	}
 
@@ -35,7 +35,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	userID.ID, err = strconv.Atoi(idString)
 	if err != nil {
 		log.Println("Error converting user ID to integer from request. urlVars:", urlVars)
-		utils.ReturnHTTPErrorResponse(w, 305, "Error fetching user")
+		utils.ReturnHTTPErrorResponse(w, http.StatusBadRequest, 305, "ID was not an integer")
 		return
 	}
 
@@ -59,17 +59,17 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	); err != nil {
 		if err == sql.ErrNoRows {
 			log.Println("Received request for nonexistent user. UserID:", userID)
-			utils.ReturnHTTPErrorResponse(w, 320, "User does not exist")
+			utils.ReturnHTTPErrorResponse(w, http.StatusNotFound, 320, "User does not exist")
 			return
 		}
 		log.Println("Error fetching requested user from database. UserID:", userID, "-- Error:", err)
-		utils.ReturnHTTPErrorResponse(w, 310, "Error fetching user")
+		utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 310, "Error fetching user")
 		return
 	}
 
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		log.Println("Error encoding response for requested user. User:", user, "-- Error:", err)
-		utils.ReturnHTTPErrorResponse(w, 340, "Error fetching user")
+		utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 340, "Error fetching user")
 		return
 	}
 }
@@ -87,7 +87,7 @@ func NewUser(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&u)
 	if err != nil {
 		log.Println("Error decoding request body for NewUser. Body:", r.Body, "-- Error:", err)
-		utils.ReturnHTTPErrorResponse(w, 200, "Error creating new user")
+		utils.ReturnHTTPErrorResponse(w, http.StatusBadRequest, 200, "Request body was not properly formatted")
 		return
 	}
 	// TODO: Encrypt user password
@@ -95,7 +95,7 @@ func NewUser(w http.ResponseWriter, r *http.Request) {
 	tx, err := utils.DBCon.Begin()
 	if err != nil {
 		log.Println("Error starting new transaction for inserting new channel. Error:", err, "-- User:", u)
-		utils.ReturnHTTPErrorResponse(w, 210, "Error creating new user")
+		utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 210, "Error creating new user")
 		return
 	}
 	defer tx.Rollback()
@@ -113,29 +113,29 @@ func NewUser(w http.ResponseWriter, r *http.Request) {
 			matchSlice := constraintPattern.FindSubmatch([]byte(err.(*pq.Error).Message))
 			if len(matchSlice) < 2 {
 				log.Println("Received request to create user but encountered unknown unique constraint violation. Error:", err)
-				utils.ReturnHTTPErrorResponse(w, 230, "Unknown error attempting to create user")
+				utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 230, "Unknown error attempting to create user")
 				return
 			}
 			constraint := string(matchSlice[1])
 			if constraint == "user_unq_username" {
 				log.Println("Received request to create user with duplicate username. Username:", u.Username)
-				utils.ReturnHTTPErrorResponse(w, 240, "Username already in use")
+				utils.ReturnHTTPErrorResponse(w, http.StatusBadRequest, 240, "Username already in use")
 				return
 			} else if constraint == "user_unq_email" {
 				log.Println("Received request to create user with duplicate email. Email:", u.Email)
-				utils.ReturnHTTPErrorResponse(w, 250, "Email already in use")
+				utils.ReturnHTTPErrorResponse(w, http.StatusBadRequest, 250, "Email already in use")
 				return
 			}
 		}
 		log.Println("Error inserting new user. Error:", err, "-- User:", u)
-		utils.ReturnHTTPErrorResponse(w, 260, "Error creating new user")
+		utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 260, "Error creating new user")
 		return
 	}
 
 	err = tx.Commit()
 	if err != nil {
 		log.Println("Error committing transaction for new user. Error:", err, "-- User:", u)
-		utils.ReturnHTTPErrorResponse(w, 280, "Error creating new user")
+		utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 280, "Error creating new user")
 		return
 	}
 	log.Println("Successfully created new user")

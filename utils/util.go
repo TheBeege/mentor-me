@@ -15,11 +15,13 @@ type ErrorResponse struct {
 
 // ReturnHTTPErrorResponse is a helper function to construct and return proper
 // error responses for REST endpoints
-func ReturnHTTPErrorResponse(w http.ResponseWriter, code int, message string) {
-	r := &ErrorResponse{ErrorCode: code, ErrorMessage: message}
-	if err := json.NewEncoder(w).Encode(r); err != nil {
+func ReturnHTTPErrorResponse(w http.ResponseWriter, httpStatusCode int, errorCode int, message string) {
+	responseBody, err := json.Marshal(&ErrorResponse{ErrorCode: errorCode, ErrorMessage: message})
+	if err != nil {
 		log.Println("Failed to write HTTP Error Response. Error:", err)
 	}
+	//http.Error(w, string(responseBody[:bytes.IndexByte(responseBody, 0)]), httpStatusCode)
+	http.Error(w, string(responseBody), httpStatusCode)
 }
 
 var (

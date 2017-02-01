@@ -26,14 +26,14 @@ func NewMentorTopic(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&mt)
 	if err != nil {
 		log.Println("Error decoding request body for new MentorTopic. Body:", r.Body, "-- Error:", err)
-		utils.ReturnHTTPErrorResponse(w, 200, "Error creating new mentor topic")
+		utils.ReturnHTTPErrorResponse(w, http.StatusBadRequest, 200, "Request body was not properly formatted")
 		return
 	}
 
 	tx, err := utils.DBCon.Begin()
 	if err != nil {
 		log.Println("Error starting new transaction for inserting mentor topic. Error:", err, "-- MentorTopic:", mt)
-		utils.ReturnHTTPErrorResponse(w, 210, "Error creating new mentor topic")
+		utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 210, "Error creating new mentor topic")
 		return
 	}
 	defer tx.Rollback()
@@ -54,26 +54,26 @@ func NewMentorTopic(w http.ResponseWriter, r *http.Request) {
 			matchSlice := constraintPattern.FindSubmatch([]byte(err.(*pq.Error).Message))
 			if len(matchSlice) < 2 {
 				log.Println("Received request to create mentor topic but encountered unknown unique constraint violation. Error:", err)
-				utils.ReturnHTTPErrorResponse(w, 230, "Unknown error attempting to create mentor topic")
+				utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 230, "Unknown error attempting to create mentor topic")
 				return
 			}
 			constraint := string(matchSlice[1])
 			if constraint == "mentor_topic_id" {
 				log.Println("Received request to create mentor topic with duplicate user and topic IDs. UserID:", mt.UserID, "TopicID:", mt.TopicID)
-				utils.ReturnHTTPErrorResponse(w, 240, "Mentor topic combination already in use")
+				utils.ReturnHTTPErrorResponse(w, http.StatusBadRequest, 240, "Mentor topic combination already in use")
 				return
 			}
 			// TODO: Is there a better way to organize this?
 		}
 		log.Println("Error inserting new mentor topic. Error:", err, "-- MentorTopic:", mt)
-		utils.ReturnHTTPErrorResponse(w, 260, "Error creating new mentor topic")
+		utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 260, "Error creating new mentor topic")
 		return
 	}
 
 	err = tx.Commit()
 	if err != nil {
 		log.Println("Error committing transaction for new mentor topic. Error:", err, "-- MentorTopic:", mt)
-		utils.ReturnHTTPErrorResponse(w, 280, "Error creating new mentor topic")
+		utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 280, "Error creating new mentor topic")
 		return
 	}
 	log.Println("Successfully created new mentor topic")
@@ -91,13 +91,13 @@ func FindMentors(w http.ResponseWriter, r *http.Request) {
 	topicName, ok := urlVars["topic"]
 	if !ok {
 		log.Println("Error retrieving topic name from request. urlVars:", urlVars)
-		utils.ReturnHTTPErrorResponse(w, 300, "Error retrieving mentors")
+		utils.ReturnHTTPErrorResponse(w, http.StatusBadRequest, 300, "Topic name missing from request")
 		return
 	}
 	level, err := strconv.Atoi(urlVars["level"])
 	if err != nil {
 		log.Println("Error retrieving level from request. urlVars:", urlVars, "Error:", err)
-		utils.ReturnHTTPErrorResponse(w, 300, "Error retrieving mentors")
+		utils.ReturnHTTPErrorResponse(w, http.StatusBadRequest, 300, "Level missing from request")
 		return
 	}
 
@@ -121,7 +121,7 @@ func FindMentors(w http.ResponseWriter, r *http.Request) {
 	`, topicName, level)
 	if err != nil {
 		log.Println("Error retrieving mentors from database. TopicName:", topicName, "Level:", level, "-- Error:", err)
-		utils.ReturnHTTPErrorResponse(w, 320, "Error retrieving mentors")
+		utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 320, "Error retrieving mentors")
 		return
 	}
 	for rows.Next() {
@@ -136,7 +136,7 @@ func FindMentors(w http.ResponseWriter, r *http.Request) {
 			&user.IconURL,
 		); err != nil {
 			log.Println("Error scanning mentor user from database. TopicName:", topicName, "Level:", level, "-- Error:", err)
-			utils.ReturnHTTPErrorResponse(w, 310, "Error retrieving mentors")
+			utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 310, "Error retrieving mentors")
 			continue
 		}
 		userSlice = append(userSlice, user)
@@ -144,7 +144,7 @@ func FindMentors(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(userSlice); err != nil {
 		log.Println("Error encoding response for requested topics. UsersSlice:", userSlice, "-- Error:", err)
-		utils.ReturnHTTPErrorResponse(w, 340, "Error retrieving similar topic")
+		utils.ReturnHTTPErrorResponse(w, http.StatusInternalServerError, 340, "Error retrieving similar topic")
 		return
 	}
 }
