@@ -9,3 +9,6 @@ This is the front-end for the Mentor Me project, this time using Beego
 3. [Install dep](https://github.com/golang/dep) - `go get -u github.com/golang/dep/...`
 4. Run `dep ensure` to resolve dependencies
 3. Run `bee run -downdoc=true -gendoc=true` to generate documentation and run the server
+
+## Front-end check
+To play with static front-end assets, see `localhost:8080/static/example.html` once you have the server running. 
