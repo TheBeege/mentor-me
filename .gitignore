@@ -1,8 +1,4 @@
-node_modules
-public
-.tmp
-.sass-cache
+bin
+config*.json
+Godeps
 .idea
-client/bower_components
-dist
-/server/config/local.env.js

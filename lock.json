@@ -1,0 +1,56 @@
+{
+    "memo": "3c1bc6862abf50facc2b8229376bc1e031f08ea284a6ed300ed5a717de493d13",
+    "projects": [
+        {
+            "name": "github.com/astaxie/beego",
+            "version": "v1.7.2",
+            "revision": "90999717dda6193c6f970eec52e289b0a9e74998",
+            "packages": [
+                ".",
+                "config",
+                "context",
+                "grace",
+                "logs",
+                "session",
+                "toolbox",
+                "utils"
+            ]
+        },
+        {
+            "name": "github.com/gopherjs/gopherjs",
+            "branch": "master",
+            "revision": "7d94d732be268c4904141f8b8604eb2d6d6544a1",
+            "packages": [
+                "js"
+            ]
+        },
+        {
+            "name": "github.com/jtolds/gls",
+            "version": "v4.2.0",
+            "revision": "8ddce2a84170772b95dd5d576c48d517b22cac63",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/smartystreets/assertions",
+            "version": "1.6.0",
+            "revision": "e9a2f6771d97c709b2f7609fdf89ebde8b64c926",
+            "packages": [
+                ".",
+                "internal/go-render/render",
+                "internal/oglematchers"
+            ]
+        },
+        {
+            "name": "github.com/smartystreets/goconvey",
+            "version": "1.6.2",
+            "revision": "d4c757aa9afd1e2fc1832aaab209b5794eb336e1",
+            "packages": [
+                "convey",
+                "convey/gotest",
+                "convey/reporting"
+            ]
+        }
+    ]
+}
