@@ -1,4 +1,6 @@
 bin
 config*.json
-Godeps
 .idea
+vendor
+swagger
+mentor-me
