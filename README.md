@@ -1,6 +1,7 @@
 # Mentor Me
+Mentor-Me is a simple mentor matchmaking app. Users can sign up as a mentor and/or mentee. Mentors can list a skill they'd like to mentor in along with their level of expertise in said skill. Mentees can search for mentors by skill and level. A mentee can submit a request for mentorship upon finding a desired mentor. The mentor can then accept or reject the request. Upon acceptance, the mentor and mentee will receive each other's contact information.
 
-This is the front-end for the Mentor Me project, this time using Beego
+This is the front-end for the Mentor Me project, this time using Beego. You can find the [API here](https://github.com/TheBeege/mentor-me-api).
 
 ## Setup
 1. [Install Go](https://golang.org/doc/install)
